@@ -1,16 +1,72 @@
-function domifyText(text) {
-  return text.replace(/(\s[a-zA-Z]+)ez([\s\.,])/g, "$1" + "er" + "$2")
-             .replace(/(\s[a-zA-Z]+)é([\s\.,])/g, " $1" + "ez" + "$2")
-             .replace(/ genre([\s\.,])/g, " jors" + "$1")
-             .replace(/ ait([\s\.,])/g, " est" + "$1")
-             .replace(/ ça([\s\.,])/g, " sa" + "$1")
-             .replace(/ c'est([\s\.,])/g, " ses" + "$1")
-             .replace(/(\s)*C'est([\s\.,])/g, "$1" + "Ses" + "$2")
-             .replace(" au bout d'un moment", " ou bout d'un moment")
+var DOM_MISTAKE_LIKELIHOOD_PERCENTAGE = 80;
+var erSuffixes = ["er", "ez", "é", "ée", "és", "ées"]
+var switchWords = {
+  "ça": "sa",
+  "sa": "ça",
+  "se": "ce",
+  "ce": "se",
+  "c'est": "ses",
+  "C'est": "Ses",
+  "ses": "c'est",
+  "Ses": "C'est",
+  "ait": "est",
+  "est": "ait"
+}
+var switchExpressions = {
+  "genre": "jors",
+  "au bout d'un moment": "ou bout d'un moment",
+  "Kuala Lumpur": "Guadaloumpur"
 }
 
-$(document).ready(function() {
-  $("p").each(function(){
-    $(this).text(domifyText($(this).text()));
-  });
-});
+function domifyText(text) {
+  var tokens = text.split(/\s+/);
+  var domifiedTokens = [];
+  for (t=0; t<tokens.length; t++) {
+    token = tokens[t];
+    newToken = token;
+    if (Math.floor(Math.random()*100) < DOM_MISTAKE_LIKELIHOOD_PERCENTAGE) {
+      for (j=0;j<erSuffixes.length; j++) {
+        regex = new RegExp("([a-zA-Z]+)" + erSuffixes[j] + "([\.,]?)$", "g");
+        if (regex.test(token)) {
+          newToken = token.replace(regex, "$1" + erSuffixes[Math.floor(Math.random()*erSuffixes.length)] + "$2");
+        }
+      }
+      for (sword in switchWords) {
+        regex = new RegExp("^" + sword + "([\.,]?)$", "g");
+        if (regex.test(token)) {
+          newToken = token.replace(regex, switchWords[sword] + "$1");
+        }
+      }
+    }
+    domifiedTokens.push(newToken);
+  }
+  output = domifiedTokens.join(" ");
+  for (expression in switchExpressions) {
+    output.replace(expression, switchExpressions[expression]);
+  }
+  return output
+}
+
+function getTextNodesIn(node, includeWhitespaceNodes) {
+  var textNodes = [], nonWhitespaceMatcher = /\S/;
+  function getTextNodes(node) {
+    if (node.nodeType == 3) {
+      if (includeWhitespaceNodes || nonWhitespaceMatcher.test(node.nodeValue)) {
+        textNodes.push(node);
+      }
+    } else {
+      for (var i = 0, len = node.childNodes.length; i < len; ++i) {
+        getTextNodes(node.childNodes[i]);
+      }
+    }
+  }
+  getTextNodes(node);
+  return textNodes;
+}
+
+(function() {
+  var textElements = getTextNodesIn(document.getElementsByTagName("body")[0], false);
+  for (var te = 0; te < textElements.length; te++) {
+    textElements[te].textContent = domifyText(textElements[te].textContent);
+  }
+})();
