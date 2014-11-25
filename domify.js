@@ -22,6 +22,9 @@ var switchExpressions = {
   "it's his fault": "his his faute"
 }
 
+function escapeRegExp(string) { return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1"); }
+function replaceAll(string, find, replace) { return string.replace(new RegExp(escapeRegExp(find), 'g'), replace); }
+
 function domifyText(text) {
   var tokens = text.split(/\s+/);
   var domifiedTokens = [];
@@ -46,7 +49,7 @@ function domifyText(text) {
   }
   output = domifiedTokens.join(" ");
   for (expression in switchExpressions) {
-    output.replace(expression, switchExpressions[expression]);
+    output = replaceAll(output, expression, switchExpressions[expression]);
   }
   return output
 }
