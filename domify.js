@@ -15,7 +15,11 @@ var switchWords = {
 var switchExpressions = {
   "genre": "jors",
   "au bout d'un moment": "ou bout d'un moment",
-  "Kuala Lumpur": "Guadaloumpur"
+  "Kuala Lumpur": "Guadaloumpur",
+  "il semblerait que": "il paraitrait comme quoi",
+  "il apparait que": "il paraitrait comme quoi",
+  "dans les écoles": "aux écoles",
+  "it's his fault": "his his faute"
 }
 
 function domifyText(text) {
